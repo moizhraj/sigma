@@ -1,0 +1,111 @@
+{
+  "network": {
+    "interface": "0.0.0.0",
+    "port": 502
+  },
+  "defaults": {
+    "simulationIntervalMs": 1000,
+    "updateIntervalMs": 5000,
+    "jitter": 0.5,
+    "valueRange": {
+      "min": 0,
+      "max": 1000
+    },
+    "simulationPattern": "sine"
+  },
+  "devices": [
+    {
+      "unitId": 1,
+      "name": "HVAC Controller",
+      "description": "Zone temperature and humidity controller",
+      "registers": {
+        "holdingRegisters": [
+          {
+            "startAddress": 0,
+            "count": 10,
+            "label": "Temperature sensors (scaled x10)",
+            "dataType": "uInt16",
+            "simulationPattern": "sine",
+            "valueRange": {
+              "min": 150,
+              "max": 950
+            },
+            "updateIntervalMs": 3000
+          }
+        ],
+        "inputRegisters": [
+          {
+            "startAddress": 0,
+            "count": 5,
+            "label": "Humidity sensors (scaled x10)",
+            "dataType": "uInt16",
+            "simulationPattern": "random",
+            "valueRange": {
+              "min": 200,
+              "max": 800
+            },
+            "updateIntervalMs": null
+          }
+        ],
+        "coils": [
+          {
+            "startAddress": 0,
+            "count": 8,
+            "label": "Fan and valve controls",
+            "dataType": "uInt16",
+            "simulationPattern": "ramp",
+            "valueRange": null,
+            "updateIntervalMs": null
+          }
+        ],
+        "discreteInputs": [
+          {
+            "startAddress": 0,
+            "count": 4,
+            "label": "Door and window sensors",
+            "dataType": "uInt16",
+            "simulationPattern": "sine",
+            "valueRange": null,
+            "updateIntervalMs": null
+          }
+        ]
+      }
+    },
+    {
+      "unitId": 2,
+      "name": "Power Meter",
+      "description": "3-phase power measurement",
+      "registers": {
+        "holdingRegisters": [
+          {
+            "startAddress": 0,
+            "count": 6,
+            "label": "Voltage L1/L2/L3 (IEEE 754 float, 2 registers each)",
+            "dataType": "float32",
+            "simulationPattern": "sine",
+            "valueRange": {
+              "min": 210,
+              "max": 240
+            },
+            "updateIntervalMs": 2000
+          },
+          {
+            "startAddress": 10,
+            "count": 6,
+            "label": "Current L1/L2/L3 (IEEE 754 float, 2 registers each)",
+            "dataType": "float32",
+            "simulationPattern": "sawtooth",
+            "valueRange": {
+              "min": 0,
+              "max": 32
+            },
+            "updateIntervalMs": null
+          }
+        ],
+        "inputRegisters": [],
+        "coils": [],
+        "discreteInputs": []
+      }
+    }
+  ]
+}
