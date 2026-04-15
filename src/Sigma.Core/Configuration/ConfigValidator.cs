@@ -31,7 +31,7 @@ public static class ConfigValidator
         if (string.IsNullOrWhiteSpace(device.Name))
             errors.Add($"Device with unitId={device.UnitId} is missing a name.");
 
-        if (device.UnitId == 0)
+        if (device.UnitId == 0 || device.UnitId > 247)
             errors.Add($"{prefix}: unitId must be between 1 and 247.");
 
         if (!seenUnitIds.Add(device.UnitId))

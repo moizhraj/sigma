@@ -2,11 +2,10 @@ namespace Sigma.Core.Simulation;
 
 public class RandomSimulator : IValueSimulator
 {
-    private readonly Random _random = new();
-
+    // Random.Shared is thread-safe; avoids races when multiple simulation ticks overlap.
     public double GetAnalogValue(double elapsedSeconds, double phaseOffset, double min, double max)
-        => min + _random.NextDouble() * (max - min);
+        => min + Random.Shared.NextDouble() * (max - min);
 
     public bool GetBinaryValue(double elapsedSeconds, double phaseOffset)
-        => _random.Next(2) == 1;
+        => Random.Shared.Next(2) == 1;
 }
