@@ -9,7 +9,10 @@ public class SimulatedRegister
     public int Address { get; init; }
     public DataType DataType { get; init; }
     public bool IsWritable { get; init; }
-    public bool IsOverridden { get; set; }
+    // volatile so the simulation engine (timer thread) sees writes made by the
+    // RequestValidator (network thread) without requiring a full lock.
+    private volatile bool _isOverridden;
+    public bool IsOverridden { get => _isOverridden; set => _isOverridden = value; }
     public IValueSimulator Simulator { get; init; } = null!;
     public double PhaseOffset { get; init; }
     public double Min { get; init; }

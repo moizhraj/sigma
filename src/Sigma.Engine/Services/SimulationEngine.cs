@@ -16,6 +16,7 @@ public class SimulationEngine : IDisposable
     private readonly List<SimulatedDevice> _devices = [];
     private readonly DateTime _startTime = DateTime.UtcNow;
     private Timer? _timer;
+    private int _tickRunning;
     private bool _disposed;
 
     public SimulationEngine(ModbusServerHandler server, ILogger<SimulationEngine> logger)
@@ -39,6 +40,23 @@ public class SimulationEngine : IDisposable
     }
 
     private void Tick(object? _)
+    {
+        // Skip this tick if the previous one is still running (timer callbacks can overlap
+        // on the thread pool when a tick takes longer than the interval).
+        if (Interlocked.CompareExchange(ref _tickRunning, 1, 0) != 0)
+            return;
+
+        try
+        {
+            DoTick();
+        }
+        finally
+        {
+            Volatile.Write(ref _tickRunning, 0);
+        }
+    }
+
+    private void DoTick()
     {
         double elapsed = (DateTime.UtcNow - _startTime).TotalSeconds;
 

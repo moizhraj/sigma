@@ -41,17 +41,53 @@ public class ModbusServerHandler : IDisposable
     public void Start(string ipAddress, int port)
     {
         // Hook every incoming request so the dashboard can count reads/writes.
-        // Return ModbusExceptionCode.OK (0x00) to allow all requests through.
+        // Write FCs also mark affected registers as overridden so the simulation
+        // engine stops overwriting values that a client has explicitly set.
         _server.RequestValidator = (unitId, fc, address, count) =>
         {
             try { OnRequest?.Invoke(unitId, fc, address, count); }
             catch { /* never let a display error break request processing */ }
+
+            if (fc is ModbusFunctionCode.WriteSingleCoil
+                   or ModbusFunctionCode.WriteMultipleCoils
+                   or ModbusFunctionCode.WriteSingleRegister
+                   or ModbusFunctionCode.WriteMultipleRegisters)
+            {
+                MarkOverridden(unitId, fc, address, count);
+            }
+
             return ModbusExceptionCode.OK;
         };
 
         var endpoint = new IPEndPoint(IPAddress.Parse(ipAddress), port);
         _server.Start(endpoint);
         _logger.LogInformation("Modbus TCP server listening on {Endpoint}", endpoint);
+    }
+
+    /// <summary>
+    /// Marks any SimulatedRegister that overlaps the written address range as overridden,
+    /// preventing the simulation engine from overwriting the client-supplied value.
+    /// </summary>
+    private void MarkOverridden(byte unitId, ModbusFunctionCode fc, ushort address, ushort count)
+    {
+        var device = _devices.FirstOrDefault(d => d.UnitId == unitId);
+        if (device is null) return;
+
+        bool isCoilWrite = fc is ModbusFunctionCode.WriteSingleCoil
+                                or ModbusFunctionCode.WriteMultipleCoils;
+        int writeEnd = address + count - 1;
+
+        foreach (var reg in device.AllRegisters)
+        {
+            bool typeMatch = isCoilWrite
+                ? reg.Type is RegisterType.Coil
+                : reg.Type is RegisterType.HoldingRegister;
+            if (!typeMatch) continue;
+
+            int regEnd = reg.Address + reg.RegisterWidth - 1;
+            if (reg.Address <= writeEnd && regEnd >= address)
+                reg.IsOverridden = true;
+        }
     }
 
     public void Stop()
@@ -132,7 +168,8 @@ public class ModbusServerHandler : IDisposable
             case DataType.Int32:
             {
                 Span<byte> bytes = stackalloc byte[4];
-                BinaryPrimitives.WriteInt32BigEndian(bytes, (int)Math.Clamp(value, int.MinValue, int.MaxValue));
+                // Use explicit double literals — (double)int.MaxValue rounds up in IEEE 754
+                BinaryPrimitives.WriteInt32BigEndian(bytes, (int)Math.Clamp(value, -2147483648.0, 2147483647.0));
                 span[register.Address]     = BinaryPrimitives.ReadInt16BigEndian(bytes[..2]);
                 span[register.Address + 1] = BinaryPrimitives.ReadInt16BigEndian(bytes[2..]);
                 break;
