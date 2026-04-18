@@ -4,6 +4,10 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Authors>Moiz Hasan Raja</Authors>
+    <Copyright>Copyright (c) 2026 Moiz Hasan Raja</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/moizhraj/sigma</RepositoryUrl>
   </PropertyGroup>
 
 </Project>

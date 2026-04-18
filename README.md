@@ -1,5 +1,7 @@
 # sigma
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 **Simulator for Generic Modbus Applications**
 
 sigma is a CLI tool that simulates one or more Modbus TCP slave devices from a JSON configuration file. It is useful for testing Modbus clients, SCADA systems, and BMS integrations without needing real hardware.
@@ -275,3 +277,9 @@ dotnet run --project src/Sigma.Cli -- run --config config/sample.json
 | [Serilog](https://serilog.net/) | Structured logging to file |
 | [Microsoft.Extensions.Hosting](https://learn.microsoft.com/en-us/dotnet/core/extensions/generic-host) | Hosted service lifecycle + DI |
 | [xUnit](https://xunit.net/) + [FluentAssertions](https://fluentassertions.com/) | Unit testing |
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE) for details.
