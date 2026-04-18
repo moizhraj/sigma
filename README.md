@@ -1,6 +1,11 @@
 # sigma
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![CI](https://github.com/moizhraj/sigma/actions/workflows/dotnet.yml/badge.svg)](https://github.com/moizhraj/sigma/actions/workflows/dotnet.yml)
+[![.NET 8](https://img.shields.io/badge/.NET-8.0-512BD4)](https://dotnet.microsoft.com/download/dotnet/8.0)
+[![GitHub release](https://img.shields.io/github/v/release/moizhraj/sigma?include_prereleases)](https://github.com/moizhraj/sigma/releases)
+[![GitHub issues](https://img.shields.io/github/issues/moizhraj/sigma)](https://github.com/moizhraj/sigma/issues)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/moizhraj/sigma/pulls)
 
 **Simulator for Generic Modbus Applications**
 
