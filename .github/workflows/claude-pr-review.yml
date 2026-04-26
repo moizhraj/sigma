@@ -1,0 +1,89 @@
+name: Claude PR Review
+
+on:
+  pull_request:
+    branches: ["main"]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    outputs:
+      test_outcome: ${{ steps.test.outcome }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore
+
+      - name: Test with coverage
+        id: test
+        run: dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: ./coverage
+
+  review:
+    name: Claude Code Review (Opus 4.6)
+    runs-on: ubuntu-latest
+    needs: test
+    if: always()
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download coverage report
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: coverage-report
+          path: ./coverage
+
+      - name: Run Claude PR Review
+        uses: anthropic/claude-code-action@v1
+        with:
+          model: claude-opus-4-6
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          direct_prompt: |
+            You are an expert code reviewer for the sigma Modbus simulator project (C# / .NET 8).
+            Review PR #${{ github.event.pull_request.number }}: "${{ github.event.pull_request.title }}"
+            Branch: `${{ github.head_ref }}` → `main`
+            CI test result: ${{ needs.test.outputs.test_outcome }}
+
+            Architecture rules (strictly enforced — dependencies flow downward only):
+              Core ← Engine ← Cli
+            Never reference Engine or Cli from Core; never reference Cli from Engine.
+
+            Review checklist:
+            1. **Code correctness** — logic errors, off-by-one, null refs, unhandled edge cases
+            2. **Layer violations** — cross-layer imports or leaking abstractions
+            3. **Thread safety** — volatile fields, Interlocked patterns, SimulationEngine re-entrancy guard
+            4. **Modbus compliance** — FC handling, multi-register encoding (Float32/Int32/UInt32 = 2 slots, big-endian), coil byte encoding (0x00/0xFF)
+            5. **Test coverage** — Sigma.Core must stay at 100%; new Engine code needs tests; note any coverage gaps
+            6. **Security** — injection risks, unsafe deserialization, unvalidated external input
+            7. **Performance** — unnecessary allocations in hot paths (SimulationEngine tick loop)
+
+            CI status: ${{ needs.test.outputs.test_outcome == 'success' && 'All tests passed.' || 'One or more tests FAILED — flag any test failures in the review.' }}
+
+            Post your review as a PR comment with:
+            - A brief **Summary** of what the PR does
+            - Findings grouped by the checklist above (omit sections with no findings)
+            - A clear **Verdict**: Approved / Approved with suggestions / Changes requested
