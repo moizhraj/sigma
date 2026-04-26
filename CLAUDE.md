@@ -67,6 +67,14 @@ When adding tests for `Sigma.Engine` services, prefer using an OS-assigned port 
 
 Always branch → commit → push → open PR to `main`. Never push directly to `main`.
 
-## Modbus Expert
+## Agents
 
-A Modbus protocol expert agent is available at `.claude/agents/modbus-expert.md` (also installed globally). Use `@modbus-expert` for protocol audits or codebase compliance checks. A lighter inline skill (`/modbus-expert <question>`) is available for mid-coding Q&A.
+Three specialized sub-agents are available in `.claude/agents/`. See `agents.md` at the repo root for full usage guidance and invocation examples.
+
+| Agent | When to use |
+|---|---|
+| `@modbus-expert` | Protocol questions, compliance audits, FC/encoding reference, FluentModbus API |
+| `@sigma-test-writer` | Writing tests, filling `Sigma.Engine` coverage gaps, integration tests with a live server |
+| `@sigma-reviewer` | Pre-PR review for layer violations, encoding correctness, thread-safety, override tracking |
+
+The `/modbus-expert` **skill** is a lighter inline alternative for quick mid-coding Q&A without leaving the main conversation.
