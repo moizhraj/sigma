@@ -67,6 +67,19 @@ When adding tests for `Sigma.Engine` services, prefer using an OS-assigned port 
 
 Always branch → commit → push → open PR to `main`. Never push directly to `main`.
 
+## Automated PR Review
+
+When a session is triggered by a `pull_request.opened` GitHub webhook event targeting `main`, automatically perform a thorough code review without waiting for user input. The review must:
+
+1. Run `dotnet build` to confirm the branch compiles.
+2. Run `dotnet test` and capture pass/fail counts and any failures.
+3. Run `dotnet test --collect:"XPlat Code Coverage"` and report per-project coverage, flagging any regression below the documented baselines (`Sigma.Core` 100 %, `Sigma.Engine` ~33 %).
+4. Inspect the diff for layer violations (Core must not reference Engine/Cli, Engine must not reference Cli), thread-safety issues on `volatile`/`Interlocked` fields, and Modbus encoding correctness.
+5. Post inline GitHub review comments on specific diff lines for each finding.
+6. Submit a PR review with an overall `APPROVE` or `REQUEST_CHANGES` verdict and a concise summary comment.
+
+Use the `claude-opus-4-8` model (Opus 4.6 is retired; Opus 4.8 is the current generation) for this review by invoking the `@sigma-reviewer` agent or the `/review` skill.
+
 ## Agents
 
 Three specialized sub-agents are available in `.claude/agents/`. See `agents.md` at the repo root for full usage guidance and invocation examples.
